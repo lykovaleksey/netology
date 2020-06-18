@@ -66,6 +66,51 @@ CREATE TABLE years_film (
       CONSTRAINT years_film_ukey UNIQUE(year,film_id)
 );
 
+CREATE TABLE directors (
+    director_id        SERIAL,
+    director_name       varchar(400),    
+    CONSTRAINT directors_pkey PRIMARY KEY (director_id),
+    CONSTRAINT directors_ukey UNIQUE(director_name)
+);
+
+CREATE TABLE directors_film (
+    directors_film_id        SERIAL,
+    director_id       integer,    
+    film_id       integer,    
+    CONSTRAINT directors_film_pkey PRIMARY KEY (directors_film_id),
+    CONSTRAINT directors_film_ukey UNIQUE(director_id,film_id)
+);
+
+
+CREATE TABLE authors (
+    author_id        SERIAL,
+    author_name       varchar(400),    
+    CONSTRAINT authors_pkey PRIMARY KEY (author_id),
+    CONSTRAINT authors_ukey UNIQUE(author_name)
+);
+
+CREATE TABLE authors_film (
+    authors_film_id        SERIAL,
+    author_id       integer,    
+    film_id       integer,    
+    CONSTRAINT authors_film_pkey PRIMARY KEY (authors_film_id),
+    CONSTRAINT authors_film_ukey UNIQUE(author_id,film_id)
+);
+
+CREATE TABLE cameramans (
+    cameraman_id        SERIAL,
+    cameraman_name       varchar(400),    
+    CONSTRAINT cameramans_pkey PRIMARY KEY (cameraman_id),
+    CONSTRAINT cameramans_ukey UNIQUE(cameraman_name)
+);
+
+CREATE TABLE cameramans_film (
+    cameramans_film_id        SERIAL,
+    cameraman_id       integer,    
+    film_id       integer,    
+    CONSTRAINT cameramans_film_pkey PRIMARY KEY (cameramans_film_id),
+    CONSTRAINT cameramans_film_ukey UNIQUE(cameraman_id,film_id)
+);
 
 
 CREATE TABLE films (
@@ -80,7 +125,8 @@ CREATE TABLE films (
     age_id integer,
     genre_id integer,
     category_id integer,
-    price integer,
+    price float,
+    cost float,
     status_id        integer,
     olddate date,
     CONSTRAINT films_pkey PRIMARY KEY (id),   
@@ -117,14 +163,109 @@ insert into years_film (film_id , year)
 select id as film_id, currentyear as year from r
 order by r.id, r.currentyear;
 
---
+-- directors 
+
+insert into directors(director_name)
+select distinct trim(s.token) 
+from films_raw t,  unnest(string_to_array(t.director , ',')) s(token);
+
+
+insert into  public.directors_film (film_id ,director_id  )
+select distinct t.id, d.director_id 
+from films_raw t,  unnest(string_to_array(t.director , ',')) s(token)
+inner join directors d on d.director_name  =  trim(s.token) ;
+
+-- script_author 
+insert into authors(author_name)
+select distinct trim(s.token) 
+from films_raw t,  unnest(string_to_array(t.script_author , ',')) s(token);
+
+
+insert into  public.authors_film (film_id ,author_id  )
+select distinct t.id, d.author_id 
+from films_raw t,  unnest(string_to_array(t.script_author , ',')) s(token)
+inner join authors d on d.author_name  =  trim(s.token) ;
+
+-- cameramans 
+insert into cameramans(cameraman_name)
+select distinct trim(s.token) 
+from films_raw t,  unnest(string_to_array(t.cameraman , ',')) s(token);
+
+
+insert into  cameramans_film (film_id ,cameraman_id  )
+select distinct t.id, d.cameraman_id 
+from films_raw t,  unnest(string_to_array(t.cameraman , ',')) s(token)
+inner join cameramans d on d.cameraman_name  =  trim(s.token) ;
+
+------------------ countries
+
+insert into countries (country_name)
+select distinct trim( replace (s.token, E'\n','') )
+from films_raw t,  unnest(string_to_array(t.country , '|')) s(token)
+
+insert into countries_film (film_id ,country_id  )
+select distinct t.id, d.country_id 
+from films_raw t,  unnest(string_to_array(t.country , '|')) s(token)
+inner join countries d on d.country_name  =  trim( replace (s.token, E'\n','') ) ;
+-----------------------
+
+insert into statuses (status_name )
+select distinct status from films_raw
+
+insert into ages (age_name )
+select distinct age from films_raw
+
+insert into genres (genre_name )
+select distinct genre from films_raw
+
+insert into categories (category_name )
+select distinct category from films_raw
+
+-- Основная таблица Films 
+
+
+insert into(film_key,
+start_ts,
+end_ts,
+is_current,
+create_ts,
+update_ts,
+title,
+age_id,
+genre_id,
+category_id,
+price,
+cost,
+status_id,
+olddate) 
+
+select fr.id
+	,fr."date" start_ts
+	, COALESCE (LEAD(fr."date" ) OVER (partition by fr.id  ORDER BY fr."date"  ), '2999-12-31' )  end_ts
+	, null is_current
+	, null create_ts
+	, null update_ts
+	, fr.title, age_id
+	, g.genre_id
+	, c.category_id
+	, cast (fr.price  as float)
+	,  cast (fr.cost  as float) 
+	,s.status_id
+	,  fr.date
+from  films_raw fr
+inner join statuses s on s.status_name = fr.status 
+inner join ages a on a.age_name = fr.age 
+inner join genres g on g.genre_name = fr.genre 
+inner join categories c on c.category_name = fr.category 
 
 
 
 
+select *
+ from  films_raw fr
+ where id in ( 2157027, 2160359, 2160360)
 
-1942,1943,1948,1954-1956,1958,1960,1963,1964,1966,1969,1972,1976
-2009-2010,2012-2014
+ 
+ 
+ 
 
-select * from films_raw
-where "year"  like '%,%' and "year"  like '%-%'
