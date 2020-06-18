@@ -1,3 +1,4 @@
+-- Создаём справочники 
 CREATE TABLE studios (
     studio_id        SERIAL,
     studio_name       varchar(400),    
@@ -112,7 +113,7 @@ CREATE TABLE cameramans_film (
     CONSTRAINT cameramans_film_ukey UNIQUE(cameraman_id,film_id)
 );
 
-
+-- Создаём основную таблицу 
 CREATE TABLE films (
     id        SERIAL,
     film_key integer, 
@@ -133,7 +134,7 @@ CREATE TABLE films (
 );
 
 
-
+-- заполнение справочников
 insert into studios (studio_name )
 select distinct trim(s.token)
 FROM   films_raw t, unnest(string_to_array(t.studio, ',')) s(token)
@@ -221,8 +222,6 @@ insert into categories (category_name )
 select distinct category from films_raw
 
 -- Основная таблица Films 
-
-
 insert into films (film_key,
 start_ts,
 end_ts,
@@ -253,6 +252,10 @@ inner join statuses s on s.status_name = fr.status
 inner join ages a on a.age_name = fr.age 
 inner join genres g on g.genre_name = fr.genre 
 inner join categories c on c.category_name = fr.category 
+
+-- //TODO constraints
+-- //TODO indexes
+
 
 
 
