@@ -128,9 +128,8 @@ CREATE TABLE films (
     price float,
     cost float,
     status_id        integer,
-    olddate date,
-    CONSTRAINT films_pkey PRIMARY KEY (id),   
-    CONSTRAINT films_ukey UNIQUE(film_key)
+    CONSTRAINT films_pkey PRIMARY KEY (id)
+   
 );
 
 
@@ -224,7 +223,7 @@ select distinct category from films_raw
 -- Основная таблица Films 
 
 
-insert into(film_key,
+insert into films (film_key,
 start_ts,
 end_ts,
 is_current,
@@ -236,22 +235,19 @@ genre_id,
 category_id,
 price,
 cost,
-status_id,
-olddate) 
-
+status_id) 
 select fr.id
-	,fr."date" start_ts
-	, COALESCE (LEAD(fr."date" ) OVER (partition by fr.id  ORDER BY fr."date"  ), '2999-12-31' )  end_ts
-	, null is_current
-	, null create_ts
-	, null update_ts
+	,to_date(fr.date, 'YYYY-MM-DD' )  start_ts
+	, COALESCE (LEAD(to_date(fr.date, 'YYYY-MM-DD' )) OVER (partition by fr.id  ORDER BY to_date(fr.date, 'YYYY-MM-DD' )  ), '2999-12-31' )  end_ts
+	, CASE WHEN LEAD(to_date(fr.date, 'YYYY-MM-DD' )) OVER (partition by fr.id  ORDER BY to_date(fr.date, 'YYYY-MM-DD' ) ) is null THEN 1  ELSE 0 END  is_current
+	, now() create_ts
+	, now() update_ts
 	, fr.title, age_id
 	, g.genre_id
 	, c.category_id
 	, cast (fr.price  as float)
 	,  cast (fr.cost  as float) 
 	,s.status_id
-	,  fr.date
 from  films_raw fr
 inner join statuses s on s.status_name = fr.status 
 inner join ages a on a.age_name = fr.age 
@@ -259,11 +255,6 @@ inner join genres g on g.genre_name = fr.genre
 inner join categories c on c.category_name = fr.category 
 
 
-
-
-select *
- from  films_raw fr
- where id in ( 2157027, 2160359, 2160360)
 
  
  
