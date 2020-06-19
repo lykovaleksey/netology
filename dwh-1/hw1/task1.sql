@@ -1,4 +1,4 @@
--- Создаём справочники 
+-- РЎРѕР·РґР°С‘Рј СЃРїСЂР°РІРѕС‡РЅРёРєРё  
 CREATE TABLE studios (
     studio_id        SERIAL,
     studio_name       varchar(400),    
@@ -113,7 +113,7 @@ CREATE TABLE cameramans_film (
     CONSTRAINT cameramans_film_ukey UNIQUE(cameraman_id,film_id)
 );
 
--- Создаём основную таблицу 
+-- РЎРѕР·РґР°С‘Рј РѕСЃРЅРѕРІРЅСѓСЋ С‚Р°Р±Р»РёС†Сѓ 
 CREATE TABLE films (
     id        SERIAL,
     film_key integer, 
@@ -134,7 +134,7 @@ CREATE TABLE films (
 );
 
 
--- заполнение справочников
+-- Р·Р°РїРѕР»РЅРµРЅРёРµ СЃРїСЂР°РІРѕС‡РЅРёРєРѕРІ
 insert into studios (studio_name )
 select distinct trim(s.token)
 FROM   films_raw t, unnest(string_to_array(t.studio, ',')) s(token)
@@ -221,7 +221,7 @@ select distinct genre from films_raw
 insert into categories (category_name )
 select distinct category from films_raw
 
--- Основная таблица Films 
+-- РћСЃРЅРѕРІРЅР°СЏ С‚Р°Р±Р»РёС†Р° Films 
 insert into films (film_key,
 start_ts,
 end_ts,
