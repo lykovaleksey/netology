@@ -237,7 +237,7 @@ cost,
 status_id) 
 select fr.id
 	,to_date(fr.date, 'YYYY-MM-DD' )  start_ts
-	, COALESCE (LEAD(to_date(fr.date, 'YYYY-MM-DD' )) OVER (partition by fr.id  ORDER BY to_date(fr.date, 'YYYY-MM-DD' )  ), '2999-12-31' )  end_ts
+	, COALESCE (LEAD((to_date(fr.date, 'YYYY-MM-DD' ) - interval '1 day')::date) OVER (partition by fr.id  ORDER BY to_date(fr.date, 'YYYY-MM-DD' )  ), '2999-12-31' )  end_ts
 	, CASE WHEN LEAD(to_date(fr.date, 'YYYY-MM-DD' )) OVER (partition by fr.id  ORDER BY to_date(fr.date, 'YYYY-MM-DD' ) ) is null THEN 1  ELSE 0 END  is_current
 	, now() create_ts
 	, now() update_ts
