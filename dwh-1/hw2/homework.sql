@@ -325,12 +325,22 @@ LEFT JOIN dim.product p ON p.code::int = si.music_id
 ;
 
 
--- Home work start
+
+---------------------------------
+-- Home work start --------------
+---------------------------------
+
+ALTER TABLE dim.product
+ALTER COLUMN artist TYPE varchar(400);
+ALTER TABLE dim.product
+ALTER COLUMN name TYPE varchar(400);
+
+INSERT INTO dim.product (code, name, artist, product_type, product_category, unit_price, unit_cost, status, effective_ts, expire_ts, is_current)
 
 select 
 f.id::varchar as code,
 f.title  as name,
-null  as artist,
+coalesce((select name from films_director fd inner join films_to_director f2d on f2d.director_id  = fd.id  where f2d.film_id  = f.id limit 1), 'Неизвестно')   as artist,
 'Фильм' as product_type,
 coalesce(fg.name, 'Неизвестно') as product_category ,
  
@@ -347,5 +357,6 @@ coalesce(fg.name, 'Неизвестно') as product_category ,
   
 from nds.films f 
 left join nds.films_genre fg on fg.id  = f.genre_id 
+
 
 
