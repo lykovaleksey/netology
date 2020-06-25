@@ -359,4 +359,61 @@ from nds.films f
 left join nds.films_genre fg on fg.id  = f.genre_id 
 
 
+select * from nds.sale_item
+
+select c.id, cusm from dim.customer  c
+inner join nds.sale_item st on st.customer_id  = c.id 
+group by c.id 
+
+
+---------------------------------
+-- TASK #2
+---------------------------------
+
+uPDATE  dim.customer c SET (subscriber_class) =
+    (
+    select   coalesce( t.subscriber_class,'R1') from (
+	    select t.customer_id,	
+	      t.sumpart/ max(t.sumpart) over(),
+	       case 
+	      	  when t.sumpart/ max(t.sumpart) over() < 0.25 then 'R1'
+	      	  when t.sumpart/ max(t.sumpart) over() < 0.5 then 'R2'
+	      	  when t.sumpart/ max(t.sumpart) over() < 0.75 then 'R3'
+	      	   when t.sumpart/ max(t.sumpart) over() < 1 then 'R4'
+	      	  else '-'
+	      	end as subscriber_class 
+		from (
+		select t.customer_id, sum(t.pricesum),
+		CASE 
+		      WHEN t.fistsale <  CURRENT_DATE - interval '3 month' then sum(t.pricesum)*4
+		      else sum(t.pricesum)*365/ DATE_PART('day', (CURRENT_DATE - t.fistsale))
+		end sumpart
+		from (
+		select t.*, min (t.dt) over (partition  by  t.customer_id)  as fistsale
+			from (
+				select si.customer_id  , si.dt  /*, si.quantity , b.price ,m.price, f.price */ ,
+				si.quantity *  coalesce( b.price,1)* coalesce( m.price,1)* coalesce( f.price,1) as pricesum
+				from sale_item si
+				left join book  b on b.id  = si.book_id 
+				left join music  m on m.id = si.music_id 
+				left join films f on f.id = si.film_id 
+				
+				union all
+				
+				select c.id, cs."date", s.price from nds.subscriptions s
+				inner join nds.customers_subscriptions cs on cs.subscription_id = s.id 
+				inner join nds.customer c on c.id  = cs.customer_id 
+			) t
+			
+		)t
+		where t.dt > CURRENT_DATE - interval '3 month'
+		group by t.customer_id, t.fistsale
+		) t
+		group by t.customer_id, t.sumpart
+	    ) t
+    right join dim.customer cc on cc.id = t.customer_id    
+     WHERE cc.id = c.id);
+---------------------------------
+-- TASK #3
+---------------------------------
 
