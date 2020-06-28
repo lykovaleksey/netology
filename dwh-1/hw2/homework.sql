@@ -416,4 +416,55 @@ uPDATE  dim.customer c SET (subscriber_class) =
 ---------------------------------
 -- TASK #3
 ---------------------------------
+	-- Создаём измерение пакет
+    create table dim.packet as
+    select distinct s.subscriptions_key  as id,
+    subscriptions_key ,
+    name as name,
+    music_quantity,
+    books_quantity ,
+    films_quantity ,
+    days_active
+    from nds.subscriptions s;
+   
+   ALTER TABLE dim.packet ADD PRIMARY KEY (id);
 
+    
+    --- Добавляем колонку с количеством активных подписок
+    alter table dim.customer 
+    add column count_active_subscription integer;
+    
+   --  обновляем поле про активные подписки
+   update  dim.customer c
+   set count_active_subscription =  (
+   		select count(1) from nds.customers_subscriptions cs 
+	   inner join nds.subscriptions s on s.id  = cs.subscription_id 
+	   where cs.customer_id = c.id 
+	   and cs.date + interval '1' day * s.days_active  > current_date   
+   )
+   
+   -- создаём таблицу фактов по подпискам
+	 drop table if exists fact.fsubscription ;
+	
+   create table fact.fsubscription (
+        date_key int not null references dim.date(id),
+        packet_id int not null references dim.packet(id),
+        region_id int not null references nds.region(id),
+        gender varchar (1) not null,
+        revenue int not null
+
+    )     
+   insert into    fact.fsubscription
+   select d.id, p.id,  city.region_id, c.gender, sum(s.price)   revenue 
+   from dim.date d, nds.customers_subscriptions cs 
+   inner join nds.subscriptions s on s.id = cs.subscription_id 
+   inner join nds.customer c on c.id = cs.customer_id
+   inner join dim.packet p on p.subscriptions_key  = cs.subscription_id 
+   inner join nds.address a on a.id = c.address_id 
+   inner join nds.city city on city.id  = a.city_id    
+   where cs."date"  = d."date"       
+   group by d.id, p.id,  city.region_id, c.gender
+   
+   
+    
+    
