@@ -488,23 +488,8 @@
   </connection>
   <order>
     <hop>
-      <from>Table input</from>
-      <to>Уникальные файлы</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
       <from>Уникальные файлы</from>
       <to>файлы</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>Table input</from>
-      <to>Колонки в файле</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>Table input</from>
-      <to>Фильтрация колонок</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
@@ -527,6 +512,21 @@
       <to>ETL metadata injection</to>
       <enabled>Y</enabled>
     </hop>
+    <hop>
+      <from>Table input</from>
+      <to>Уникальные файлы</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Table input</from>
+      <to>Колонки в файле</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Table input</from>
+      <to>Фильтрация колонок</to>
+      <enabled>Y</enabled>
+    </hop>
   </order>
   <step>
     <name>ETL metadata injection</name>
@@ -542,7 +542,7 @@
     <specification_method>filename</specification_method>
     <trans_object_id/>
     <trans_name/>
-    <filename>file:///d:/netology/dwh-1/hw5/load_csv.ktr</filename>
+    <filename>${Internal.Entry.Current.Directory}/load_csv.ktr</filename>
     <directory_path/>
     <source_step/>
     <source_output_fields>    </source_output_fields>
@@ -571,6 +571,13 @@
         <target_detail>Y</target_detail>
         <source_step>Колонки в базе</source_step>
         <source_field>source_field</source_field>
+      </mapping>
+      <mapping>
+        <target_step_name>Загрузка данных из файла</target_step_name>
+        <target_attribute_key>FIELD_DECIMAL</target_attribute_key>
+        <target_detail>Y</target_detail>
+        <source_step>Колонки в базе</source_step>
+        <source_field>decimal</source_field>
       </mapping>
       <mapping>
         <target_step_name>Загрузка данных из файла</target_step_name>
@@ -633,7 +640,7 @@
     <name>Table input</name>
     <type>TableInput</type>
     <description/>
-    <distribute>Y</distribute>
+    <distribute>N</distribute>
     <custom_distribution/>
     <copies>1</copies>
     <partitioning>
@@ -846,7 +853,7 @@ order by filename, ord</sql>
       </output>
     </remotesteps>
     <GUI>
-      <xloc>208</xloc>
+      <xloc>192</xloc>
       <yloc>240</yloc>
       <draw>Y</draw>
     </GUI>
@@ -865,9 +872,15 @@ order by filename, ord</sql>
     <fields>
       <field>
         <name>source_field</name>
+        <rename/>
       </field>
       <field>
         <name>target_field</name>
+        <rename/>
+      </field>
+      <field>
+        <name>decimal</name>
+        <rename/>
       </field>
       <select_unspecified>N</select_unspecified>
     </fields>
@@ -899,9 +912,15 @@ order by filename, ord</sql>
     <fields>
       <field>
         <name>source_field</name>
+        <rename/>
       </field>
       <field>
         <name>source_field_type</name>
+        <rename/>
+      </field>
+      <field>
+        <name>decimal</name>
+        <rename/>
       </field>
       <select_unspecified>N</select_unspecified>
     </fields>
